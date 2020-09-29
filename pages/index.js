@@ -1,65 +1,54 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, { useState } from "react";
 
-export default function Home() {
+import { useDispatch, useSelector } from "react-redux";
+import { Creators as LocationActions } from "../store/ducks/location";
+
+const Home = () => {
+  const dispatch = useDispatch();
+  const [zipcode, setZipcode] = useState("");
+
+  const requestZipcode = () => {
+    // Disparar uma action para solicitar o endereço baseado no meu CEP.
+    dispatch(LocationActions.requestLocation(zipcode));
+  };
+
+  const location = useSelector((state) => state.location.location);
+  const { data, status } = location;
+
+  console.log("data", data);
+  console.log("status", status);
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <p>Informe seu CEP:</p>
+      <input onChange={(e) => setZipcode(e.target.value)} value={zipcode} />
+      <button onClick={requestZipcode}>Buscar</button>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      {status === "idle" ? <h1>Não iniciado</h1> : <></>}
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+      {status === "pending" ? <h1>Carregando...</h1> : <></>}
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+      {status === "resolved" ? (
+        <>
+          <label>Endereço:</label>
+          <p>{data.logradouro}</p>
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+          <label>Bairro</label>
+          <p>{data.bairro}</p>
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+          <label>Cidade:</label>
+          <p>{data.localidade}</p>
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+          <label>UF:</label>
+          <p>{data.uf}</p>
+        </>
+      ) : (
+        <></>
+      )}
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
-}
+      {status === "rejected" ? <h1>Ocorreu algum erro...</h1> : <></>}
+    </>
+  );
+};
+
+export default Home;
